@@ -1,5 +1,5 @@
 #include <iostream>
-#include <SDL.h>
+//#include <SDL.h>
 #include "chip8.h"
 
 int main(int argc, char* argv[])
@@ -10,12 +10,14 @@ int main(int argc, char* argv[])
 		std::cout << "Unable to load file\n";
 		return 1;
 	}
-	int done{ 20 };
+	int done{ 600 };
 	while (done > 0) {
+		if (done % 200 == 0) {
+			chip8.testMemory();
+		}
 		chip8.emulateCycle();
 		done--;
 	}
-	chip8.testMemory();
-
+	
 	return 0;
 }
