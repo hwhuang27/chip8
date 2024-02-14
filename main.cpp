@@ -1,8 +1,5 @@
 #include <iostream>
-#include <fstream>
-#include <cstdint>
-#include <vector>
-#include <string_view>
+#include <SDL.h>
 #include "chip8.h"
 
 int main(int argc, char* argv[])
@@ -13,7 +10,11 @@ int main(int argc, char* argv[])
 		std::cout << "Unable to load file\n";
 		return 1;
 	}
-
+	int done{ 20 };
+	while (done > 0) {
+		chip8.emulateCycle();
+		done--;
+	}
 	chip8.testMemory();
 
 	return 0;

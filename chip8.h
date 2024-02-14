@@ -13,6 +13,9 @@ public:
 	std::vector<uint8_t> key;	// keypress array (16)
 
 private:
+	void fetchOpcode();
+	void decodeAndExecute();
+
 	uint16_t opcode{};		// current opcode
 	uint16_t pc{};			// program counter
 	uint16_t sp{};			// stack pointer
