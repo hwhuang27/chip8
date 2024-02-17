@@ -229,8 +229,8 @@ void Chip8::decodeAndExecute() {
 				//std::cout << "pixel: " << std::hex << static_cast<int>(pixel) << "\n";
 
 				for (int j{ 0 }; j < 8; ++j) {
-					index = (64 * (y + i)) + x + j;
-					if (index % 64 == 0) { break; };	// stop if on right edge of screen
+					index = (64 * (y + i)) + x + j;					
+					if (j > 0 && (index % 64 == 0)) { break; };	// stop drawing if on right edge
 
 					if ((pixel & (0x80 >> j)) == (0x80 >> j)) {	// check if sprite bit is on
 						if (gfx[index] == 1) {
@@ -241,6 +241,7 @@ void Chip8::decodeAndExecute() {
 							gfx[index] = 1;				// turn on display bit
 						};
 					};
+
 				};
 				if ((y + i) > 32) { break; };	// stop if on bottom of screen
 			};
