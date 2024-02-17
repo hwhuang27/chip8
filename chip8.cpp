@@ -72,6 +72,8 @@ void Chip8::decodeAndExecute() {
 					uint16_t addr = stack[sp];
 					pc = addr;
 				} break;
+				default:	// 0NNN - skip this instruction
+					break;
 			};
 		} break;
 
@@ -203,7 +205,7 @@ void Chip8::decodeAndExecute() {
 
 		case 0xb:	// BNNN	- Jump to address NNN + V0
 		{
-			uint16_t addr = opcode & 0x3ff;
+			uint16_t addr = opcode & 0xfff;
 			pc = addr + V[0];
 		} break;
 
@@ -252,13 +254,17 @@ void Chip8::decodeAndExecute() {
 			uint8_t right_byte = opcode & 0xff;
 			uint8_t x = (opcode >> 8) & 0xf;
 			switch (right_byte) {
-				case 0x9e:
+				case 0x9e:	// EX9E - skip next opcode if key in VX is being pressed
 				{
 					std::cout << "0xEX9E instruction\n";
+					if (key[V[x]])
+						pc += 2;
 				}break;
-				case 0xa1:
+				case 0xa1:	// EX9E - skip next opcode if key in VX is NOT being pressed
 				{
 					std::cout << "0xEXA1 instruction\n";
+					if (!(key[V[x]]))
+						pc += 2;
 				}break;
 			};
 		} break;
@@ -268,15 +274,25 @@ void Chip8::decodeAndExecute() {
 			uint8_t right_byte = opcode & 0xff;
 			uint8_t x = (opcode >> 8) & 0xf;
 			switch (right_byte) {
-				case 0x07:{ V[x] = delay_timer; } break;
-				case 0x0a:
+				case 0x07:{ V[x] = delay_timer; } break;	// FX07 - store delay timer into VX
+				case 0x0a:	// FX0A - wait for keypress and store into VX
 				{
 					std::cout << "FX0A instruction\n";
-					// pc -= 2;
-					// wait for keypress
-					// timers should still be decreasing
-					// V[x] <- keypress in hex
-					// continue;
+					bool keyDown = false;
+					uint8_t num{};
+
+					for (int i{ 0 }; i < 16; ++i) {
+						if (key[i]) {
+							keyDown = true;
+							num = i;
+							break;
+						};
+					};
+					
+					if (keyDown)
+						V[x] = num;
+					else
+						pc -= 2;
 				} break;
 				case 0x15: { delay_timer = V[x]; } break;
 				case 0x18: { sound_timer = V[x]; } break;
@@ -285,7 +301,7 @@ void Chip8::decodeAndExecute() {
 				} break;
 				case 0x29:	// FX29 - Font character
 				{
-					I = memory[0x50 + (V[x] * 5)];
+					I = memory[0x50 + (V[x] * 0x5)];
 				} break;
 				case 0x33:	// FX33 - Binary-coded decimal conversion	
 				{
@@ -315,10 +331,14 @@ void Chip8::decodeAndExecute() {
 	};	// end of main switch
 }
 
+void Chip8::updateTimers() {
+
+}
+
 void Chip8::emulateCycle() {
 	fetchOpcode();		// Fetch Opcode (Increment PC here)
 	decodeAndExecute();	// Decode + Execute Opcode
-						// Update Timers
+	updateTimers();		// Update Timers
 };
 
 bool Chip8::loadApplication(const char* filename) {
@@ -337,16 +357,14 @@ bool Chip8::loadApplication(const char* filename) {
 };
 
 void Chip8::testMemory() {
-	//std::cout << std::hex << "\n";
+	// Print bytes of loaded ROM 
 	//for (int i = 512; i < memory.size()/6; i +=2) {
 	//	std::cout << std::uppercase << std::setfill('0') << std::setw(4) << i;
 	//	uint16_t opcode = memory[i] << 8 | memory[i + 1];
 	//	std::cout << " 0x" << std::nouppercase << std::setfill('0') << std::setw(4) << opcode << "\n";
 	//}
-
-	//std::cout << "Reg 0 before: " << std::hex << std::setfill('0') << std::setw(2) << (uint16_t)V[reg] << "\n";
-	//std::cout << "Reg 0 after: " << std::hex << std::setfill('0') << std::setw(2) << (uint16_t)V[reg] << "\n";
-
+	
+	// Print display array to terminal
 	for (int i{ 0 }; i < gfx.size(); ++i) {
 		if (i % 64 == 0)
 			std::cout << "\n";

@@ -15,6 +15,7 @@ public:
 private:
 	void fetchOpcode();
 	void decodeAndExecute();
+	void updateTimers();
 
 	uint16_t opcode{};		// current opcode
 	uint16_t pc{};			// program counter
