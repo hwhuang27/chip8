@@ -11,9 +11,9 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	int cycles{ 400 };
+	int cycles{ 1000 };
 	while (cycles > 0) {
-		if (cycles % 50 == 0) {
+		if (cycles % 200 == 0) {
 			chip8.testMemory();
 		}
 		chip8.emulateCycle();
