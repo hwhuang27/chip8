@@ -8,8 +8,10 @@
 
 - CHIP-8 Guide (Laurence Muller) (https://multigesture.net/articles/how-to-write-an-emulator-chip-8-interpreter/)
 
+- CHIP-8 Guide (Austin Morlan) (https://austinmorlan.com/posts/chip8_emulator/)
+
 - CHIP-8 Opcode Table (Gulrak) (https://chip8.gulrak.net/)
 
 - SDL2 Guide (https://lazyfoo.net/tutorials/SDL/index.php)
 
-- CHIP-8 Test Suite (Timendus) (https://github.com/Timendus/chip8-test-suite/tree/main)
+- CHIP-8 Testing Suite (Timendus) (https://github.com/Timendus/chip8-test-suite/tree/main)
