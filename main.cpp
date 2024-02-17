@@ -10,14 +10,16 @@ int main(int argc, char* argv[])
 		std::cout << "Unable to load file\n";
 		return 1;
 	}
-	int done{ 600 };
-	while (done > 0) {
-		if (done % 200 == 0) {
+
+	int cycles{ 400 };
+	while (cycles > 0) {
+		if (cycles % 50 == 0) {
 			chip8.testMemory();
 		}
 		chip8.emulateCycle();
-		done--;
+		cycles--;
 	}
+	chip8.testMemory();
 	
 	return 0;
 }

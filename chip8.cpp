@@ -38,9 +38,12 @@ Chip8::Chip8()
 	, V(16)
 	, memory(4096) 
 {
-	for (int i = 0; i < fontset.size(); i++) {
-		memory[i] = fontset[i];		// load fontset into memory
-	}
+
+	// load fontset into memory
+	for (int i{ 0 }; i < 80; ++i) {
+		memory[i] = fontset[i];		
+	};
+
 	std::cout << "Chip 8 initialized. \n" << "\n";
 };
 
@@ -59,7 +62,7 @@ void Chip8::decodeAndExecute() {
 			{
 				case 0xe0:	// 00E0 - clear screen
 				{
-					for (int i = 0; i < gfx.size(); i++) {
+					for (int i{ 0 }; i < gfx.size(); ++i) {
 						gfx[i] = 0;
 					};
 				} break;
@@ -71,11 +74,13 @@ void Chip8::decodeAndExecute() {
 				} break;
 			};
 		} break;
+
 		case 0x1:	// 1NNN - JMP to address NNN
 		{
 			uint16_t addr = opcode & 0x3ff;
 			pc = addr;
 		} break;
+
 		case 0x2:	// 2NNN - Execute subroutine at address NNN
 		{
 			uint16_t addr = opcode & 0x3ff;
@@ -83,6 +88,7 @@ void Chip8::decodeAndExecute() {
 			sp += 1;
 			pc = addr;
 		} break;
+
 		case 0x3:	// 3XNN - Skip next instruction if VX == NN
 		{
 			uint8_t x = (opcode >> 8) & 0xf;
@@ -91,6 +97,7 @@ void Chip8::decodeAndExecute() {
 				pc += 2;
 			};
 		} break;
+
 		case 0x4:	// 4XNN - Skip next instruction if VX != NN
 		{
 			uint8_t x = (opcode >> 8) & 0xf;
@@ -99,7 +106,8 @@ void Chip8::decodeAndExecute() {
 				pc += 2;
 			};
 		} break;
-		case 0x5: // 5XY0 - Skip next instruction if VX == VY
+
+		case 0x5:	// 5XY0 - Skip next instruction if VX == VY
 		{
 			uint8_t x = (opcode >> 8) & 0xf;
 			uint8_t y = (opcode >> 4) & 0xf;
@@ -107,18 +115,21 @@ void Chip8::decodeAndExecute() {
 				pc += 2;
 			};
 		} break;
+
 		case 0x6:	// 6XNN - Store NN in register VX
 		{
 			uint8_t x = (opcode >> 8) & 0xf;
 			uint8_t byte = opcode & 0xff;
 			V[x] = byte;
 		} break;
+
 		case 0x7:	// 7XNN - Add NN to register VX
 		{
 			uint8_t x = (opcode >> 8) & 0xf;
 			uint8_t byte = opcode & 0xff;
 			V[x] += byte;
 		} break;
+
 		case 0x8:	// 8--- Instructions
 		{
 			uint8_t right_nib = opcode & 0xf;
@@ -176,7 +187,8 @@ void Chip8::decodeAndExecute() {
 				} break;
 			};	// end of 0x8 switch
 		} break;
-		case 0x9: // 9XY0 - Skip next instruction if VX != VY
+
+		case 0x9:	// 9XY0 - Skip next instruction if VX != VY
 		{
 			uint8_t x = (opcode >> 8) & 0xf;
 			uint8_t y = (opcode >> 4) & 0xf;
@@ -184,73 +196,121 @@ void Chip8::decodeAndExecute() {
 				pc += 2;
 			};
 		} break;
+
 		case 0xa:	// ANNN	- Set index register to NNN
 		{
 			uint16_t addr = opcode & 0x3ff;
 			I = addr;
 		} break;
+
 		case 0xb:	// BNNN	- Jump to address NNN + V0
 		{
 			uint16_t addr = opcode & 0x3ff;
 			pc = addr + V[0];
 		} break;
+
 		case 0xc:	// CXNN - VX <- random number AND NN
 		{
 			uint8_t x = (opcode >> 8) & 0xf;
-			//uint8_t rand =  (std::rand() % 256) & (opcode & 0xff);
-			uint8_t rand = ((uint8_t) (std::rand() % 256)) & ((uint8_t) (opcode & 0xff));
+			uint8_t rand =  (std::rand() % 256) & (opcode & 0xff);
+			//uint8_t rand = ((uint8_t) (std::rand() % 256)) & ((uint8_t) (opcode & 0xff));
 			V[x] = rand;
 		} break;
+
 		case 0xd:	// DXYN - Display/draw
 		{
-			uint16_t n = opcode & 0xf;
-			uint16_t x = V[(opcode >> 8) & 0xf] % 64;
-			uint16_t y = V[(opcode >> 4) & 0xf] % 32;
+			uint8_t x = V[(opcode >> 8) & 0xf] % 64;
+			uint8_t y = V[(opcode >> 4) & 0xf] % 32;
+			uint8_t n = opcode & 0xf;
+			uint8_t pixel{};
+			int index{};
 			V[0xF] = 0;
 
-			uint16_t sprite_row{};
-			uint16_t index{};
-			for (int i = 0; i < n; i++) {
-				sprite_row = memory[I + i];
+			for (int i{ 0 }; i < n; ++i) {
+				pixel = memory[I + i];
+				//std::cout << "pixel: " << std::hex << static_cast<int>(pixel) << "\n";
 
-				index = (y + i)* 64 + x;
+				for (int j{ 0 }; j < 8; ++j) {
+					index = (64 * (y + i)) + x + j;
+					if (index % 64 == 0) { break; };	// stop if on right edge of screen
 
-				for (int j = 7; j >= 0 ; j--) {
-					if (sprite_row % 2 == 1) {
-						if (gfx[index + j]) V[0xF] = 1;		// set carry flag if both are on
-						gfx[index + j] ^= sprite_row % 2;	// gfx index XOR sprite row bit
+					if ((pixel & (0x80 >> j)) == (0x80 >> j)) {	// check if sprite bit is on
+						if (gfx[index] == 1) {
+							V[0xF] = 1;					// if both bits are on:
+							gfx[index] = 0;				// set flag + turn off display bit
+						}
+						else {							// if one bit is on:
+							gfx[index] = 1;				// turn on display bit
+						};
 					};
-					sprite_row >>= 1;
 				};
+				if ((y + i) > 32) { break; };	// stop if on bottom of screen
 			};
 		} break;
+
 		case 0xe:	// E--- Instructions
 		{
-			std::cout << "0xE instruction\n";
+			uint8_t right_byte = opcode & 0xff;
+			uint8_t x = (opcode >> 8) & 0xf;
+			switch (right_byte) {
+				case 0x9e:
+				{
+					std::cout << "0xEX9E instruction\n";
+				}break;
+				case 0xa1:
+				{
+					std::cout << "0xEXA1 instruction\n";
+				}break;
+			};
 		} break;
+
 		case 0xf:	// F--- Instructions
 		{
 			uint8_t right_byte = opcode & 0xff;
 			uint8_t x = (opcode >> 8) & 0xf;
 			switch (right_byte) {
+				case 0x07:{ V[x] = delay_timer; } break;
+				case 0x0a:
+				{
+					std::cout << "FX0A instruction\n";
+					// pc -= 2;
+					// wait for keypress
+					// timers should still be decreasing
+					// V[x] <- keypress in hex
+					// continue;
+
+				} break;
+				case 0x15: { delay_timer = V[x]; } break;
+				case 0x18: { sound_timer = V[x]; } break;
+				case 0x1e: { 
+					I += V[x]; 
+					// optional: set VF flag
+				} break;
+				case 0x29:
+				{
+					I = memory[V[x] * 5];
+
+				} break;
 				case 0x33:	// FX33 - Binary-coded decimal conversion	
 				{
 					uint16_t value = V[x];
-					memory[I + 2] = (uint8_t) value % 10;
-					value = value / 10;					
-					memory[I + 1] = (uint8_t) value % 10;
+					memory[I + 2] = value % 10;	
+					value = value / 10;				
+					memory[I + 1] = value % 10;
 					value = value / 10;
-					memory[I] = (uint8_t) value % 10;
+					memory[I] = value % 10;
 				} break;
 				case 0x55:	// FX55 - Store registers into memory
 				{
-					for (int i = 0; i < 16; i++) {
+					for (int i{ 0 }; i < 16; ++i) {
 						memory[I + i] = V[i];
 					};
 				} break;
 				case 0x65:	// FX65 - Load registers from memory
 				{
-					std::cout << "FX65 called\n";
+					for (int i{ 0 }; i < 16; ++i) {
+						V[i] = memory[I + i];
+					};
 				} break;
 			};	// end of 0xf switch
 		} break;
@@ -272,7 +332,7 @@ bool Chip8::loadApplication(const char* filename) {
 	file.seekg(0, std::ios::beg);
 	file.read(reinterpret_cast<char*>(buffer.data()), filesize);
 
-	for (int i = 0; i < filesize; i++) {
+	for (int i{ 0 }; i < filesize; ++i) {
 		memory[i + 512] = buffer[i];
 	}
 
@@ -290,15 +350,16 @@ void Chip8::testMemory() {
 	//std::cout << "Reg 0 before: " << std::hex << std::setfill('0') << std::setw(2) << (uint16_t)V[reg] << "\n";
 	//std::cout << "Reg 0 after: " << std::hex << std::setfill('0') << std::setw(2) << (uint16_t)V[reg] << "\n";
 
-	for (int i = 0; i < gfx.size(); i++) {
-		if (i % 64 == 0) {
-			std::cout << "\n";
-		}
-		if (gfx[i]) {
+	for (int i{ 0 }; i < gfx.size(); ++i) {
+		if (gfx[i] == 1) {
 			std::cout << "0";
 		}
-		else {
-			std::cout << " ";
+		else if(gfx[i] == 0){
+			std::cout << "-";
+		}
+
+		if (i % 64 == 0) {
+			std::cout << "\n";
 		}
 	};
 	std::cout << "\n";
