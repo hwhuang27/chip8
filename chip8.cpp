@@ -35,8 +35,8 @@ Chip8::Chip8()
 	, memory(4096) 
 {
 	// load fontset into memory
-	for (int i{ 0 }; i < 80; ++i) {
-		memory[0x50 + i] = fontset[i];
+	for (int i{ 0 }; i < fontset.size(); ++i) {
+		memory[i] = fontset[i];
 	};
 };
 
@@ -58,12 +58,13 @@ void Chip8::decodeAndExecute() {
 					for (int i{ 0 }; i < 2048; ++i) {
 						gfx[i] = 0;
 					};
+
+					//std::fill(gfx, gfx + 2048, 0);
 				} break;
 				case 0xee:	// 00EE - return from subroutine
 				{
 					sp -= 1;
-					uint16_t addr = stack[sp];
-					pc = addr;
+					pc = stack[sp];
 				} break;
 				default:	// 0NNN - skip this instruction
 					break;
@@ -72,13 +73,13 @@ void Chip8::decodeAndExecute() {
 
 		case 0x1:	// 1NNN - JMP to address NNN
 		{
-			uint16_t addr = opcode & 0x3ff;
+			uint16_t addr = opcode & 0xfff;
 			pc = addr;
 		} break;
 
 		case 0x2:	// 2NNN - Execute subroutine at address NNN
 		{
-			uint16_t addr = opcode & 0x3ff;
+			uint16_t addr = opcode & 0xfff;
 			stack[sp] = pc;
 			sp += 1;
 			pc = addr;
@@ -199,7 +200,7 @@ void Chip8::decodeAndExecute() {
 		case 0xb:	// BNNN	- Jump to address NNN + V0
 		{
 			uint16_t addr = opcode & 0xfff;
-			pc = addr + V[0];
+			pc = V[0] + addr;
 		} break;
 
 		case 0xc:	// CXNN - VX <- random number AND NN
@@ -227,13 +228,11 @@ void Chip8::decodeAndExecute() {
 					if (j > 0 && (index % 64 == 0)) { break; };	// stop drawing if on right edge
 
 					if ((pixel & (0x80 >> j)) == (0x80 >> j)) {	// check if sprite bit is on
-						if (gfx[index] == 1) {
-							V[0xF] = 1;					// if both bits are on:
-							gfx[index] = 0;				// set flag + turn off display bit
+						if (gfx[index] == 0xFFFFFFFF) {
+							V[0xF] = 1;					
 						}
-						else {							// if one bit is on:
-							gfx[index] = 0xFFFFFFFF;	// turn on display bit
-						};
+												
+						gfx[index] ^= 0xFFFFFFFF;	
 					};
 
 				};
@@ -248,13 +247,11 @@ void Chip8::decodeAndExecute() {
 			switch (right_byte) {
 				case 0x9e:	// EX9E - skip next opcode if key in VX is being pressed
 				{
-					//std::cout << "0xEX9E instruction\n";
 					if (keys[V[x]])
 						pc += 2;
 				}break;
 				case 0xa1:	// EX9E - skip next opcode if key in VX is NOT being pressed
 				{
-					//std::cout << "0xEXA1 instruction\n";
 					if (!(keys[V[x]]))
 						pc += 2;
 				}break;
@@ -269,44 +266,59 @@ void Chip8::decodeAndExecute() {
 				case 0x07:{ V[x] = delay_timer; } break;	// FX07 - store delay timer into VX
 				case 0x0a:	// FX0A - wait for keypress and store into VX
 				{
-					//std::cout << "FX0A instruction\n";
-					bool keyDown = false;
-					uint8_t num{};
-
-					for (int i{ 0 }; i < 16; ++i) {
-						if (keys[i]) {
-							keyDown = true;
-							num = i;
-							break;
-						};
-					};
-					
-					if (keyDown)
-						V[x] = num;
+					if (keys[0])
+						V[x] = 0;
+					else if (keys[1])
+						V[x] = 1;
+					else if (keys[2])
+						V[x] = 2;
+					else if (keys[3])
+						V[x] = 3;
+					else if (keys[4])
+						V[x] = 4;
+					else if (keys[5])
+						V[x] = 5;
+					else if (keys[6])
+						V[x] = 6;
+					else if (keys[7])
+						V[x] = 7;
+					else if (keys[8])
+						V[x] = 8;
+					else if (keys[9])
+						V[x] = 9;
+					else if (keys[10])
+						V[x] = 10;
+					else if (keys[11])
+						V[x] = 11;
+					else if (keys[12])
+						V[x] = 12;
+					else if (keys[13])
+						V[x] = 13;
+					else if (keys[14])
+						V[x] = 14;
+					else if (keys[15])
+						V[x] = 15;
 					else
 						pc -= 2;
 				} break;
 				case 0x15: { delay_timer = V[x]; } break;
 				case 0x18: { sound_timer = V[x]; } break;
-				case 0x1e: { 
-					I += V[x];	// optional: set VF flag
-				} break;
+				case 0x1e: { I += V[x]; } break;
 				case 0x29:	// FX29 - Font character
 				{
-					I = memory[0x50 + (V[x] * 0x5)];
+					I = memory[V[x] * 5];
 				} break;
 				case 0x33:	// FX33 - Binary-coded decimal conversion	
 				{
 					uint16_t value = V[x];
 					memory[I + 2] = value % 10;	
-					value = value / 10;				
+					value /= 10;				
 					memory[I + 1] = value % 10;
-					value = value / 10;
+					value /= 10;
 					memory[I] = value % 10;
 				} break;
 				case 0x55:	// FX55 - Store registers V[0] to V[X] into memory
 				{
-					// note: (i <= x) in the for loop :)
 					for (uint8_t i{ 0 }; i <= x; ++i) {		
 						memory[I + i] = V[i];
 					};

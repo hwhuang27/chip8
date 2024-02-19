@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
 	int defaultHeight = 32;
 	
 	Platform platform(
-		"CHIP-8 Interpreter",
+		"CHIP-8 EMULATOR",
 		defaultWidth * displayScale,
 		defaultHeight * displayScale,
 		defaultWidth,
@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
 		std::exit(EXIT_FAILURE);
 	}
 	
-	// pitch: num pixels per row * size of pixel in bytes
+	// pitch: size of pixel in bytes * num pixels per row
 	int pitch = sizeof(chip8.gfx[0]) * defaultWidth;
 	auto prevCycleTime = std::chrono::steady_clock::now();
 	bool quit = false;
