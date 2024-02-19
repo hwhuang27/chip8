@@ -2,7 +2,7 @@
 
 CHIP-8 emulator made with C++ and SDL2
 
-Passes tests from [Timendus' CHIP-8 Testing Suite](https://github.com/Timendus/chip8-test-suite/tree/main) and runs most game ROMS found online
+Runs most game ROMs found online and passes tests from [Timendus' CHIP-8 Testing Suite](https://github.com/Timendus/chip8-test-suite/tree/main)
 
 Created to practice modern C++ and as a stepping stone for a Gameboy emulator
 
