@@ -35,7 +35,7 @@ Chip8::Chip8()
 	, memory(4096) 
 {
 	// load fontset into memory
-	for (int i{ 0 }; i < fontset.size(); ++i) {
+	for (int i{ 0 }; i < 80; ++i) {
 		memory[i] = fontset[i];
 	};
 };
@@ -55,11 +55,10 @@ void Chip8::decodeAndExecute() {
 			{
 				case 0xe0:	// 00E0 - clear screen
 				{
-					for (int i{ 0 }; i < 2048; ++i) {
-						gfx[i] = 0;
-					};
-
-					//std::fill(gfx, gfx + 2048, 0);
+					std::fill(gfx, gfx + 2048, 0);
+					//for (int i{ 0 }; i < 2048; ++i) {
+					//	gfx[i] = 0;
+					//};
 				} break;
 				case 0xee:	// 00EE - return from subroutine
 				{
@@ -306,7 +305,7 @@ void Chip8::decodeAndExecute() {
 				case 0x1e: { I += V[x]; } break;
 				case 0x29:	// FX29 - Font character
 				{
-					I = memory[V[x] * 5];
+					I = V[x] * 5;
 				} break;
 				case 0x33:	// FX33 - Binary-coded decimal conversion	
 				{
@@ -339,7 +338,7 @@ void Chip8::updateTimers() {
 	if (delay_timer > 0)
 		--delay_timer;
 	
-	// also emit a sound if non-zero
+	// emit a sound if non-zero
 	if (sound_timer > 0)	
 		--sound_timer;
 }

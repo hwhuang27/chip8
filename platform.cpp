@@ -28,11 +28,9 @@ Platform::~Platform() {
 }
 
 void Platform::update(void const* buffer, int pitch) {
-
-
-	SDL_UpdateTexture(texture, nullptr, buffer, pitch);		
+	SDL_UpdateTexture(texture, NULL, buffer, pitch);		
 	SDL_RenderClear(renderer);								// Initialize backbuffer
-	SDL_RenderCopy(renderer, texture, nullptr, nullptr);	// Copy updated screen to backbuffer
+	SDL_RenderCopy(renderer, texture, NULL, NULL);			// Copy updated screen to backbuffer
 	SDL_RenderPresent(renderer);							// Display backbuffer to screen
 }
 
