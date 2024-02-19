@@ -1,7 +1,3 @@
-#include<iostream>
-#include<vector>
-#include<fstream>
-#include<iomanip>
 #include "chip8.h"
 
 std::vector<uint8_t> fontset
@@ -26,8 +22,8 @@ std::vector<uint8_t> fontset
 
 Chip8::Chip8()
 	: drawFlag{ false }
-	, gfx(64 * 32)
-	, key(16)
+	, gfx{ 2048 }
+	, keys{ 16 }
 	, opcode{ 0 }
 	, pc{ 0x200 }
 	, sp{ 0 }
@@ -38,13 +34,10 @@ Chip8::Chip8()
 	, V(16)
 	, memory(4096) 
 {
-
 	// load fontset into memory
 	for (int i{ 0 }; i < 80; ++i) {
 		memory[0x50 + i] = fontset[i];
 	};
-
-	std::cout << "Chip 8 initialized. \n" << "\n";
 };
 
 void Chip8::fetchOpcode() {
@@ -62,7 +55,7 @@ void Chip8::decodeAndExecute() {
 			{
 				case 0xe0:	// 00E0 - clear screen
 				{
-					for (int i{ 0 }; i < gfx.size(); ++i) {
+					for (int i{ 0 }; i < 2048; ++i) {
 						gfx[i] = 0;
 					};
 				} break;
@@ -228,7 +221,6 @@ void Chip8::decodeAndExecute() {
 
 			for (int i{ 0 }; i < n; ++i) {
 				pixel = memory[I + i];
-				//std::cout << "pixel: " << std::hex << static_cast<int>(pixel) << "\n";
 
 				for (int j{ 0 }; j < 8; ++j) {
 					index = (64 * (y + i)) + x + j;					
@@ -240,7 +232,7 @@ void Chip8::decodeAndExecute() {
 							gfx[index] = 0;				// set flag + turn off display bit
 						}
 						else {							// if one bit is on:
-							gfx[index] = 1;				// turn on display bit
+							gfx[index] = 0xFFFFFFFF;	// turn on display bit
 						};
 					};
 
@@ -256,14 +248,14 @@ void Chip8::decodeAndExecute() {
 			switch (right_byte) {
 				case 0x9e:	// EX9E - skip next opcode if key in VX is being pressed
 				{
-					std::cout << "0xEX9E instruction\n";
-					if (key[V[x]])
+					//std::cout << "0xEX9E instruction\n";
+					if (keys[V[x]])
 						pc += 2;
 				}break;
 				case 0xa1:	// EX9E - skip next opcode if key in VX is NOT being pressed
 				{
-					std::cout << "0xEXA1 instruction\n";
-					if (!(key[V[x]]))
+					//std::cout << "0xEXA1 instruction\n";
+					if (!(keys[V[x]]))
 						pc += 2;
 				}break;
 			};
@@ -277,12 +269,12 @@ void Chip8::decodeAndExecute() {
 				case 0x07:{ V[x] = delay_timer; } break;	// FX07 - store delay timer into VX
 				case 0x0a:	// FX0A - wait for keypress and store into VX
 				{
-					std::cout << "FX0A instruction\n";
+					//std::cout << "FX0A instruction\n";
 					bool keyDown = false;
 					uint8_t num{};
 
 					for (int i{ 0 }; i < 16; ++i) {
-						if (key[i]) {
+						if (keys[i]) {
 							keyDown = true;
 							num = i;
 							break;
@@ -315,13 +307,13 @@ void Chip8::decodeAndExecute() {
 				case 0x55:	// FX55 - Store registers V[0] to V[X] into memory
 				{
 					// note: (i <= x) in the for loop :)
-					for (int i{ 0 }; i <= x; ++i) {		
+					for (uint8_t i{ 0 }; i <= x; ++i) {		
 						memory[I + i] = V[i];
 					};
 				} break;
 				case 0x65:	// FX65 - Load registers V[0] to V[X] from memory
 				{
-					for (int i{ 0 }; i <= x; ++i) {
+					for (uint8_t i{ 0 }; i <= x; ++i) {
 						V[i] = memory[I + i];
 					};
 
@@ -332,7 +324,12 @@ void Chip8::decodeAndExecute() {
 }
 
 void Chip8::updateTimers() {
-
+	if (delay_timer > 0)
+		--delay_timer;
+	
+	// also emit a sound if non-zero
+	if (sound_timer > 0)	
+		--sound_timer;
 }
 
 void Chip8::emulateCycle() {
@@ -342,36 +339,51 @@ void Chip8::emulateCycle() {
 };
 
 bool Chip8::loadApplication(const char* filename) {
-	// Load bytes from application into memory
+	// open file as binary stream and seek to the end
 	std::ifstream file(filename, std::ios::binary | std::ios::ate);
-	std::ifstream::pos_type filesize = file.tellg();
-	std::vector<uint8_t> buffer(filesize);
-	file.seekg(0, std::ios::beg);
-	file.read(reinterpret_cast<char*>(buffer.data()), filesize);
 
-	for (int i{ 0 }; i < filesize; ++i) {
-		memory[i + 512] = buffer[i];
+	if (file.is_open()) {
+		// make a buffer with filesize
+		std::streampos size = file.tellg();
+		char* buffer = new char[size];
+
+		// move file pointer to start
+		file.seekg(0, std::ios::beg);
+		file.read(buffer, size);
+		file.close();
+
+		// load ROM into memory starting at 0x200
+		for (int i{ 0 }; i < size; ++i) {
+			memory[0x200 + i] = buffer[i];
+		}
+		delete[] buffer;
+	}
+	else {
+		return false;
 	}
 
 	return true;
 };
 
 void Chip8::testMemory() {
-	// Print bytes of loaded ROM 
-	//for (int i = 512; i < memory.size()/6; i +=2) {
-	//	std::cout << std::uppercase << std::setfill('0') << std::setw(4) << i;
-	//	uint16_t opcode = memory[i] << 8 | memory[i + 1];
-	//	std::cout << " 0x" << std::nouppercase << std::setfill('0') << std::setw(4) << opcode << "\n";
-	//}
-	
+	// Print bytes of loaded ROM
+	std::cout << std::hex;
+	for (long i = 512; i < memory.size()/6; i +=2) {
+		std::cout << std::uppercase << std::setfill('0') << std::setw(4) << i;
+		uint16_t opcode = memory[i] << 8 | memory[i + 1];
+		std::cout << " 0x" << std::nouppercase << std::setfill('0') << std::setw(4) << opcode << "\n";
+	}
+}
+
+void Chip8::testDisplay() {
 	// Print display array to terminal
-	for (int i{ 0 }; i < gfx.size(); ++i) {
+	for (int i{ 0 }; i < 2048; ++i) {
 		if (i % 64 == 0)
 			std::cout << "\n";
 
 		if (gfx[i] == 1)
 			std::cout << "8";
-		else if(gfx[i] == 0)
+		else if (gfx[i] == 0)
 			std::cout << "-";
 	};
 	std::cout << "\n\n";

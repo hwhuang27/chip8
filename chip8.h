@@ -1,5 +1,8 @@
 #pragma once
 #include<vector>
+#include<iostream>
+#include<fstream>
+#include<iomanip>
 
 class Chip8 {
 public:
@@ -7,10 +10,11 @@ public:
 	void emulateCycle();
 	bool loadApplication(const char* filename);
 	void testMemory();
+	void testDisplay();
 
 	bool drawFlag{};			// update screen
-	std::vector<uint32_t> gfx;	// graphics array 64 * 32 = [2048]
-	std::vector<uint8_t> key;	// keypress array [16]
+	uint32_t gfx[2048]{};		// graphics array 64 * 32 = [2048]
+	uint8_t keys[16]{};			// keypress array [16]
 
 private:
 	void fetchOpcode();
