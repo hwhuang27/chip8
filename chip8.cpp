@@ -21,8 +21,7 @@ std::vector<uint8_t> fontset
 };
 
 Chip8::Chip8()
-	: drawFlag{ false }
-	, gfx{ 2048 }
+	: gfx{ 2048 }
 	, keys{ 16 }
 	, opcode{ 0 }
 	, pc{ 0x200 }
