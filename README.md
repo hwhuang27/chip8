@@ -1,19 +1,23 @@
 # CHIP-8 Emulator
 
-CHIP-8 Emulator/Interpreter made with C++ and SDL2
+CHIP-8 emulator made with C++ and SDL2
 
-Passes opcode/flag tests from [Timendus' CHIP-8 Testing Suite](https://github.com/Timendus/chip8-test-suite/tree/main) and runs most game ROMS including Breakout, Tetris, and Pong
+Passes tests from [Timendus' CHIP-8 Testing Suite](https://github.com/Timendus/chip8-test-suite/tree/main) and runs most game ROMS found online
 
-Created as practice for writing and debugging modern C++ in Visual Studio and as a stepping stone to make a Gameboy emulator.
+Created to practice modern C++ and as a stepping stone for a Gameboy emulator
 
 # Screenshots
 
+### Breakout
 ![Breakout](https://raw.githubusercontent.com/hwhuang27/chip8/master/screenshots/breakout.png)
 
+### Tetris
 ![Tetris](https://raw.githubusercontent.com/hwhuang27/chip8/master/screenshots/tetris.png)
 
+### Pong
 ![Pong](https://raw.githubusercontent.com/hwhuang27/chip8/master/screenshots/pong.png)
 
+### Cave
 ![Cave](https://raw.githubusercontent.com/hwhuang27/chip8/master/screenshots/cave.png)
 
 # References
