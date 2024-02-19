@@ -28,8 +28,8 @@ Created to practice modern C++ and as a stepping stone for a Gameboy emulator
 
 - [Building a CHIP-8 Emulator](https://austinmorlan.com/posts/chip8_emulator/) (Austin Morlan) 
 
-- [SDL2 API Documentation](https://wiki.libsdl.org/SDL2/APIByCategory)
-
 - [CHIP-8 Testing Suite](https://github.com/Timendus/chip8-test-suite/tree/main) (Timendus) 
+
+- [SDL2 API Documentation](https://wiki.libsdl.org/SDL2/APIByCategory)
 
 - [CHIP-8 ROM Collection](https://github.com/kripod/chip8-roms)
