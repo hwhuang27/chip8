@@ -12,7 +12,6 @@ public:
 	void testMemory();
 	void testDisplay();
 
-	bool drawFlag{};			// update screen
 	uint32_t gfx[2048]{};		// graphics array 64 * 32 = [2048]
 	uint8_t keys[16]{};			// keypress array [16]
 
